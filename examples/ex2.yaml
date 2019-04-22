@@ -1,0 +1,5 @@
+pkgname: dirname
+textname: filename
+extension: .txt
+name: world
+greeting: hello

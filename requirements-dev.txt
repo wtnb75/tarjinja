@@ -1,0 +1,3 @@
+dirimport
+nose
+coverage

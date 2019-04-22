@@ -1,0 +1,4 @@
+click
+{%- for i in requirements|default([]) %}
+{{i}}
+{%- endfor %}

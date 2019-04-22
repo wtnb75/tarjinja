@@ -1,0 +1,8 @@
+twine
+wheel
+dirimport
+nose
+coverage
+{%- for i in requirements_dev|default([]) %}
+{{i}}
+{%- endfor %}

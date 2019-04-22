@@ -1,0 +1,7 @@
+dirs:
+ - d1
+ - d2
+ - d3
+content:
+  d1/file.txt: hello world
+  d2/file.txt: goodbye world

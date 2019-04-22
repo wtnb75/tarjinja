@@ -1,0 +1,11 @@
+bin
+lib
+share
+include
+man
+pyvenv.cfg
+__pycache__
+cover
+.coverage
+*.egg-info
+dist
