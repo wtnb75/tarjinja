@@ -3,6 +3,7 @@ from .jinjafilter import *
 from .multifilter import *
 from .reversefilter import *
 from .strfilter import *
+from .makofilter import *
 
 from .tar import *
 from .zip import *
