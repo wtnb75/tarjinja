@@ -35,7 +35,7 @@ Options:
   --output PATH                   [required]
   --out-type [Tar|Zip|Dir|List]   [required]
   --in-type [Tar|Zip|Dir|Single]  [required]
-  --filter-type [Jinja|Multi|ReverseJinja|ReverseTemplate|ReverseFormat|ReversePercent|ReverseFstring|Template|Format|Percent|Fstring]
+  --filter-type [Jinja|Multi|ReverseJinja|ReverseTemplate|ReverseFormat|ReversePercent|ReverseFstring|Template|Format|Percent|Fstring|Mako]
   --value FILENAME
   --verbose / --no-verbose
   --thru TEXT
@@ -49,3 +49,8 @@ Options:
     - tar tvfz /tmp/ex2.tar.gz
 - tarjinja tarc --value examples/pythoncli.yaml /tmp/example1.zip examples/pythoncli
     - unzip -l /tmp/example1.zip
+
+# TODO
+
+- symbolic link support
+- add more example template
