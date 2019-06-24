@@ -1,3 +1,4 @@
+import pkg_resources
 from .iface import Filter, Input, Output
 from .jinjafilter import *
 from .multifilter import *
@@ -44,3 +45,7 @@ def filter_items():
             if k.endswith("Filter"):
                 k = k[:-len("Filter")]
             yield k, v
+
+
+def example_zips():
+    return [x.rsplit(".", 1)[0] for x in pkg_resources.resource_listdir("tarjinja", "data")]

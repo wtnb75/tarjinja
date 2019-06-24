@@ -21,7 +21,10 @@ class DirInput(Input):
                 yield os.path.join(relpath, fn), mode, st.st_mtime
 
     def readfile(self, fn: str) -> str:
-        with open(os.path.join(self.ifn, fn)) as ifp:
+        rfn = os.path.join(self.ifn, fn)
+        if os.path.islink(rfn):
+            return os.readlink(rfn)
+        with open(rfn) as ifp:
             return ifp.read()
 
 
@@ -40,9 +43,12 @@ class DirOutput(Output):
         fname = os.path.join(self.ofn, fn)
         dirname = os.path.dirname(fname)
         os.makedirs(dirname, exist_ok=True)
-        with open(fname, "w") as ofp:
-            ofp.write(content)
-        os.chmod(fname, mode)
+        if (mode & stat.S_IFLNK) == stat.S_IFLNK:
+            os.symlink(content, fname)
+        else:
+            with open(fname, "w") as ofp:
+                ofp.write(content)
+            os.chmod(fname, mode)
         if ts is not None:
             os.utime(fname, (ts, ts))
 

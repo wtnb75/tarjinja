@@ -1,8 +1,10 @@
 import os
+import io
 import sys
+import pkgutil
 import click
 import yaml
-from .choice import input_items, output_items, filter_items
+from .choice import input_items, output_items, filter_items, example_zips
 from .multifilter import MultiFilter
 from .iface import Pipeline
 from logging import getLogger, basicConfig, INFO, DEBUG
@@ -77,6 +79,23 @@ def copy(in_type, out_type, filter_type, input, output, value, verbose, thru):
     vals = yaml.load(value, Loader=yaml.FullLoader)
     set_verbose(verbose)
     do_pipe(in_type, out_type, input, output, filter_type, vals, thru)
+
+
+@cli.command()
+@click.option("--input", type=click.Choice(example_zips()), required=True)
+@click.option("--output", type=click.Path(), required=True)
+@click.option("--out-type", type=click.Choice(dict(output_items())), required=True)
+@click.option("--filter-type", type=click.Choice(dict(filter_items())), multiple=True)
+@click.option("--value", type=click.File('r'), default=sys.stdin)
+@click.option("--verbose/--no-verbose")
+@click.option("--thru", type=str, default=None)
+def copy_from(input, out_type, filter_type, output, value, verbose, thru):
+    vals = yaml.load(value, Loader=yaml.FullLoader)
+    set_verbose(verbose)
+    in_type = "Zip"
+    input_fp = io.BytesIO(pkgutil.get_data(
+        "tarjinja", os.path.join("data", input + ".zip")))
+    do_pipe(in_type, out_type, input_fp, output, filter_type, vals, thru)
 
 
 @cli.command()
