@@ -1,5 +1,6 @@
 # copy directory
 import os
+import stat
 import time
 from typing import Generator, Tuple
 from .iface import Input, Output
