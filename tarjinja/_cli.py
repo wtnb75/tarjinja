@@ -40,7 +40,7 @@ _cli_option = [
 
 _value_option = [
     click.option("--value-from", type=click.File('r')),
-    click.option("--value", default='{}'),
+    click.option("--value", default='{}', type=str),
     click.option("--gitconfig/--no-gitconfig"),
     click.option("--github-user/--no-github-user"),
 ]
@@ -166,7 +166,6 @@ def copy(in_type, out_type, filter_type, input, output, value, thru):
 @cli_option
 @value_option
 @click.option("--filter-type", type=click.Choice(dict(filter_items())), default="Jinja")
-@click.option("--value", type=click.File('r'), default=sys.stdin)
 @inout_option
 def tarc(output, input, value, filter_type):
     out_type = auto_detect(output, "Tar")
