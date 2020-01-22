@@ -16,7 +16,7 @@ class AbstractReverseFilter(Filter):
             if not v.__hash__:
                 continue
             if v not in valmap:
-                valmap[v] = self.placeholder(k)
+                valmap[str(v)] = self.placeholder(k)
         for k, v in self.tag_escape.items():
             valmap[k] = v
         log.debug("strtr: %s", valmap)

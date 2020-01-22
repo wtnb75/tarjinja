@@ -1,5 +1,5 @@
+from typing import List
 from jinja2 import Environment
-
 from .iface import Filter
 
 
@@ -20,3 +20,10 @@ class JinjaFilter(Filter):
     def render(self, s: str, vals: dict) -> str:
         tmpl = self.env.from_string(s)
         return tmpl.render(**vals)
+
+    def var_names(self, s: str) -> List[str]:
+        res = set()
+        for b in self.env.parse(source=s).body:
+            res.update([x.name for x in filter(
+                lambda f: f.__class__.__name__ == "Name", b.nodes)])
+        return res
