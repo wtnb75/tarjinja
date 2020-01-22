@@ -205,6 +205,35 @@ def rsync(output, input, value, filter_type, dry, skiptag):
 @cli.command()
 @cli_option
 @value_option
+@click.option("--filter-type", type=click.Choice(dict(filter_items())), default="Jinja")
+@click.option("--dry/--no-dry")
+@click.argument("input", type=click.Path())
+@click.argument("output", type=click.File('w'), default=sys.stdout)
+def var_names(input, output, value, filter_type, dry):
+    in_type = auto_detect(input, "Single")
+    input_val = dict(input_items()).get(in_type)(input)
+    flt = dict(filter_items()).get(filter_type)()
+    assert hasattr(flt, 'var_names')
+    res = set()
+    for fnpat, mode, ts in input_val.walk():
+        res.update(flt.var_names(fnpat))
+        content = input_val.readfile(fnpat)
+        res.update(flt.var_names(content))
+    log.debug("%s", res)
+    if dry:
+        json.dump(list(filter(lambda f: f not in value, res)), fp=output)
+        return
+    vars = {}
+    import builtins
+    for i in res:
+        if i not in value:
+            vars[i] = builtins.input("{}: ".format(i))
+    json.dump(vars, fp=output)
+
+
+@cli.command()
+@cli_option
+@value_option
 def dump_value(value):
     json.dump(value, sys.stdout)
 
