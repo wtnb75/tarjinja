@@ -207,10 +207,9 @@ def rsync(output, input, value, filter_type, dry, skiptag):
 @value_option
 @click.option("--filter-type", type=click.Choice(dict(filter_items())), default="Jinja")
 @click.option("--dry/--no-dry")
-@click.option("--skiptag/--no-skiptag", default=False)
 @click.argument("input", type=click.Path())
 @click.argument("output", type=click.File('w'), default=sys.stdout)
-def var_names(input, output, value, filter_type, dry, skiptag):
+def var_names(input, output, value, filter_type, dry):
     in_type = auto_detect(input, "Single")
     input_val = dict(input_items()).get(in_type)(input)
     flt = dict(filter_items()).get(filter_type)()
@@ -221,6 +220,9 @@ def var_names(input, output, value, filter_type, dry, skiptag):
         content = input_val.readfile(fnpat)
         res.update(flt.var_names(content))
     log.debug("%s", res)
+    if dry:
+        json.dump(list(filter(lambda f: f not in value, res)), fp=output)
+        return
     vars = {}
     import builtins
     for i in res:
