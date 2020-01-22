@@ -6,8 +6,8 @@ from typing import Generator
 
 def list_expand(s: str) -> Generator[str, None, None]:
     """
-    >>> list(list_expand("abc [1,2,3] def ['abc', 'def'] xyz"))
-    ['abc 1 def abc xyz', 'abc 1 def def xyz', 'abc 2 def abc xyz', 'abc 2 def def xyz', 'abc 3 def abc xyz', 'abc 3 def def xyz']
+    >>> list(list_expand("abc [1,2,3] def ['abc', 'def'] xyz")) # doctest:+ELLIPSIS
+    ['abc 1 def abc xyz', 'abc 1 def def xyz', ..., 'abc 3 def def xyz']
     """
     args = []
     cur = 0
