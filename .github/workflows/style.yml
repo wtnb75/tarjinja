@@ -31,4 +31,4 @@ jobs:
     - name: check coding style
       run: pycodestyle --max-line-length=120 tarjinja
     - name: pyflakes
-      run: pyflakes tarjinja/[^_]*.py tarjinja/_cli.py
+      run: pyflakes tarjinja/[^_c]*.py tarjinja/_cli.py
