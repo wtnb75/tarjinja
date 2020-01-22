@@ -28,6 +28,23 @@ class Filter:
     def renderfn(self, s: str, vals: dict) -> Generator[str, None, None]:
         return braceexpand.braceexpand(self.render(s, vals))
 
+    def strtr(self, strng: str, replace: dict) -> str:
+        # https://stackoverflow.com/questions/10931150/phps-strtr-for-python
+        buffer = []
+        i, n = 0, len(strng)
+        while i < n:
+            match = False
+            for s, r in replace.items():
+                if strng[i:len(s) + i] == s:
+                    buffer.append(r)
+                    i = i + len(s)
+                    match = True
+                    break
+            if not match:
+                buffer.append(strng[i])
+                i = i + 1
+        return ''.join(buffer)
+
 
 class Output:
     def __init__(self, ofn: str):
