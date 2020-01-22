@@ -38,6 +38,9 @@ class SingleInput(Input):
 class DirOutput(Output):
     def writefile(self, fn: str, content: str, mode: int, ts: float = None):
         fname = os.path.join(self.ofn, fn)
+        if not os.path.abspath(fname).startswith(self.ofn):
+            log.warning("%s is not in %s", fname, self.ofn)
+            return
         dirname = os.path.dirname(fname)
         os.makedirs(dirname, exist_ok=True)
         with open(fname, "w") as ofp:
