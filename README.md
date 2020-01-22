@@ -54,3 +54,9 @@ Options:
 
 - symbolic link support
 - add more example template
+
+# Links
+
+- [pypi](https://pypi.org/project/tarjinja/)
+- [coverage](https://wtnb75.github.io/tarjinja/)
+- ~~[local pypi repo](https://wtnb75.github.io/tarjinja/dist/)~~
