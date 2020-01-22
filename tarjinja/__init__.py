@@ -10,4 +10,5 @@ from .nullfilter import *
 from .reversefilter import *
 from .strfilter import *
 from .tar import *
+from .version import *
 from .zip import *

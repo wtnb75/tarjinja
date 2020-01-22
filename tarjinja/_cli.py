@@ -11,11 +11,10 @@ import string
 from .choice import input_items, output_items, filter_items
 from .multifilter import MultiFilter
 from .iface import Pipeline
+from .version import VERSION
 from logging import getLogger, basicConfig, INFO, DEBUG
 
 log = getLogger(__name__)
-
-VERSION = "0.0.1"
 
 
 @click.version_option(version=VERSION, prog_name="tarjinja")

@@ -1,3 +1,5 @@
 dirimport
 nose
 coverage
+twine
+wheel
