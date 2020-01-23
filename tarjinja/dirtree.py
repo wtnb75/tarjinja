@@ -36,6 +36,11 @@ class SingleInput(Input):
 
 
 class DirOutput(Output):
+    def __init__(self, ofn: str):
+        super().__init__(ofn)
+        self.ofn = os.path.abspath(self.ofn)
+        log.debug("ofn is %s -> %s", ofn, self.ofn)
+
     def writefile(self, fn: str, content: str, mode: int, ts: float = None):
         fname = os.path.join(self.ofn, fn)
         if not os.path.abspath(fname).startswith(self.ofn):
