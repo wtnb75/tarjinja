@@ -5,7 +5,7 @@ from .iface import Filter
 
 class JinjaFilter(Filter):
     def __init__(self, **kwargs):
-        self.env = Environment(**kwargs)
+        self.env = Environment(keep_trailing_newline=True, **kwargs)
         self.addfilter("brace", self.brace)
 
     def addfilter(self, name, fn):
