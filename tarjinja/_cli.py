@@ -224,10 +224,9 @@ def var_names(input, output, value, filter_type, dry):
         json.dump(list(filter(lambda f: f not in value, res)), fp=output)
         return
     vars = {}
-    import builtins
     for i in res:
         if i not in value:
-            vars[i] = builtins.input("{}: ".format(i))
+            vars[i] = click.prompt(i, type=str)
     json.dump(vars, fp=output)
 
 
