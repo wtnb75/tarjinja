@@ -69,10 +69,11 @@ def cli_option(func):
 def value_option(func):
     @functools.wraps(func)
     def wrap(value, value_from, gitconfig, github_user, *args, **kwargs):
+        vals = {}
         if value_from:
-            vals = yaml.load(value_from, Loader=yaml.FullLoader)
-        else:
-            vals = json.loads(value)
+            vals.update(yaml.load(value_from, Loader=yaml.FullLoader))
+        if value:
+            vals.update(json.loads(value))
         if gitconfig:
             p = subprocess.run(["git", "config", "-l"],
                                stdout=subprocess.PIPE, encoding="UTF-8", stdin=subprocess.DEVNULL)
@@ -81,6 +82,8 @@ def value_option(func):
                     continue
                 k, v = l.strip().split("=", 1)
                 v = v.strip()
+                if not k.startswith("user."):
+                    continue
                 if v in ["true", "false"] + list(string.digits):
                     continue
                 k = "git_" + k.replace(".", "_")
