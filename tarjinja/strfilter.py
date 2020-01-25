@@ -28,7 +28,7 @@ class TemplateFilter(Filter):
 
 class FormatFilter(TemplateFilter):
     pattern = re.compile(
-        '(\{\{)*\{(?P<braced>(?a:[_a-z][_a-z0-9]*))\}(\}\})*', re.IGNORECASE | re.VERBOSE)
+        '(\\{\\{)*\\{(?P<braced>(?a:[_a-z][_a-z0-9]*))\\}(\\}\\})*', re.IGNORECASE | re.VERBOSE)
 
     def render(self, s: str, vals: dict) -> str:
         return s.format(**vals)
@@ -36,7 +36,7 @@ class FormatFilter(TemplateFilter):
 
 class PercentFilter(TemplateFilter):
     pattern = re.compile(
-        '(\%\%)*\%\((?P<braced>(?a:[_a-z][_a-z0-9]*))\)', re.IGNORECASE | re.VERBOSE)
+        '(\\%\\%)*\\%\\((?P<braced>(?a:[_a-z][_a-z0-9]*))\\)', re.IGNORECASE | re.VERBOSE)
 
     def render(self, s: str, vals: dict) -> str:
         return s % vals
