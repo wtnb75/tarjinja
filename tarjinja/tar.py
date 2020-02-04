@@ -10,7 +10,7 @@ log = getLogger(__name__)
 
 
 class TarInput(Input):
-    def __init__(self, ifn: str):
+    def __init__(self, ifn: str, **kwargs):
         super().__init__(ifn)
         self.tf = tarfile.open(ifn)
         self.encoding = "utf-8"
@@ -37,7 +37,7 @@ class TarInput(Input):
 
 
 class TarOutput(Output):
-    def __init__(self, ofn: str):
+    def __init__(self, ofn: str, **kwargs):
         super().__init__(ofn)
         base, ext = os.path.splitext(ofn)
         ext = ext[1:]

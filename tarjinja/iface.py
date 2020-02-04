@@ -8,7 +8,7 @@ log = getLogger(__name__)
 
 
 class Input:
-    def __init__(self, ifn: str):
+    def __init__(self, ifn: str, **kwargs):
         self.ifn = ifn
 
     def walk(self) -> Generator[Tuple[str, int, float], None, None]:
@@ -47,7 +47,7 @@ class Filter:
 
 
 class Output:
-    def __init__(self, ofn: str):
+    def __init__(self, ofn: str, **kwargs):
         self.ofn = ofn
 
     def writefile(self, fn: str, content: str, mode: int, ts: float = None):
