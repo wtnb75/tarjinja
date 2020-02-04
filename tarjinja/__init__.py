@@ -2,6 +2,7 @@ from .choice import *
 from .dictio import *
 from .dirtree import *
 from .expand import *
+from .git import *
 from .iface import *
 from .jinjafilter import *
 from .makofilter import *

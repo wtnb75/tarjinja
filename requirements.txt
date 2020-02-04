@@ -4,3 +4,4 @@ braceexpand
 PyYAML
 mako
 requests
+GitPython

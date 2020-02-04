@@ -9,7 +9,7 @@ log = getLogger(__name__)
 
 
 class ZipInput(Input):
-    def __init__(self, ifn: str):
+    def __init__(self, ifn: str, **kwargs):
         super().__init__(ifn)
         self.zf = zipfile.ZipFile(ifn)
         self.encoding = "utf-8"
@@ -30,7 +30,7 @@ class ZipInput(Input):
 
 
 class ZipOutput(Output):
-    def __init__(self, ofn: str):
+    def __init__(self, ofn: str, **kwargs):
         super().__init__(ofn)
         self.zf = zipfile.ZipFile(ofn, "w")
         self.encoding = "utf-8"

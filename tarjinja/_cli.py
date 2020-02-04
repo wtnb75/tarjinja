@@ -8,7 +8,7 @@ import tempfile
 import requests
 import json
 import string
-from .choice import input_items, output_items, filter_items
+from .choice import input_items, output_items, detect_input, detect_output, filter_items
 from .multifilter import MultiFilter
 from .iface import Pipeline
 from .version import VERSION
@@ -45,6 +45,7 @@ _value_option = [
 ]
 
 _inout_option = [
+    click.option("--input-args", default="{}", type=str),
     click.argument("input", type=click.Path(), required=True),
     click.argument("output", type=click.Path(), required=True),
 ]
@@ -102,41 +103,28 @@ def value_option(func):
 
 def inout_option(func):
     @functools.wraps(func)
-    def wrap(input, output, *args, **kwargs):
-        if "://" in input:
+    def wrap(input, output, input_args, *args, **kwargs):
+        if "://" in input and ".git" not in input:
             tmpd = tempfile.TemporaryDirectory()
             tmpfn = os.path.join(tmpd.name, os.path.basename(input))
             with open(tmpfn, 'wb') as ofp:
                 ofp.write(requests.get(input).content)
             input = tmpfn
-        return func(input=input, output=output, *args, **kwargs)
+        return func(input=input, output=output, input_args=json.loads(input_args), *args, **kwargs)
     return multi_options(_inout_option)(wrap)
 
 
-def auto_detect(filename, defval):
-    extmap = {
-        ".tar.gz": "Tar",
-        ".tar.bz2": "Tar",
-        ".tar.xz": "Tar",
-        ".tar": "Tar",
-        ".tgz": "Tar",
-        ".tbz2": "Tar",
-        ".txz": "Tar",
-        ".zip": "Zip",
-    }
-    if os.path.isdir(filename):
-        return "Dir"
-    for k, v in extmap.items():
-        if filename.endswith(k):
-            return v
-    return defval
-
-
-def do_pipe(in_type, out_type, input, output, filter_type, vals, thru=None, notag=False):
-    log.debug("input: %s (%s), output: %s (%s), filter: %s",
-              input, in_type, output, out_type, filter_type)
-    input_val = dict(input_items()).get(in_type)(input)
-    output_val = dict(output_items()).get(out_type)(output)
+def do_pipe(in_type, out_type, input, output, filter_type, vals, thru=None, notag=False, input_args={}):
+    log.debug("input: %s (%s), output: %s (%s), filter: %s, input_args: %s",
+              input, in_type, output, out_type, filter_type, input_args)
+    if isinstance(in_type, str):
+        input_val = dict(input_items()).get(in_type)(input, **input_args)
+    else:
+        input_val = in_type(input, **input_args)
+    if isinstance(out_type, str):
+        output_val = dict(output_items()).get(out_type)(output)
+    else:
+        output_val = out_type(output)
     if isinstance(filter_type, (list, tuple)):
         if len(filter_type) == 1:
             filter_val = dict(filter_items()).get(filter_type[0])()
@@ -155,13 +143,18 @@ def do_pipe(in_type, out_type, input, output, filter_type, vals, thru=None, nota
 @cli.command()
 @cli_option
 @value_option
-@inout_option
 @click.option("--out-type", type=click.Choice(dict(output_items())), required=True)
 @click.option("--in-type", type=click.Choice(dict(input_items())), required=True)
 @click.option("--filter-type", type=click.Choice(dict(filter_items())), multiple=True)
+@click.option("--input-args", type=str, default="{}")
 @click.option("--thru", type=str, default=None)
-def copy(in_type, out_type, filter_type, input, output, value, thru):
-    do_pipe(in_type, out_type, input, output, filter_type, value, thru)
+@click.argument("input", type=click.Path(), required=True)
+@click.argument("output", type=click.Path(), required=True)
+def copy(in_type, out_type, filter_type, input, output, value, thru, input_args):
+    iarg = json.loads(input_args)
+    log.debug("input_args: %s", iarg)
+    do_pipe(in_type, out_type, input, output, filter_type,
+            value, thru, False, iarg)
 
 
 @cli.command()
@@ -169,10 +162,11 @@ def copy(in_type, out_type, filter_type, input, output, value, thru):
 @value_option
 @click.option("--filter-type", type=click.Choice(dict(filter_items())), default="Jinja")
 @inout_option
-def tarc(output, input, value, filter_type):
-    out_type = auto_detect(output, "Tar")
-    in_type = auto_detect(input, "Dir")
-    do_pipe(in_type, out_type, input, output, filter_type, value)
+def tarc(output, input, input_args, value, filter_type):
+    out_type = detect_output(output, "Tar")
+    in_type = detect_input(input, "Dir")
+    do_pipe(in_type, out_type, input, output,
+            filter_type, value, input_args=input_args)
 
 
 @cli.command()
@@ -181,10 +175,11 @@ def tarc(output, input, value, filter_type):
 @value_option
 @click.option("--verbose/--no-verbose")
 @inout_option
-def tarx(output, input, value, filter_type):
-    out_type = auto_detect(output, "Dir")
-    in_type = auto_detect(input, "Tar")
-    do_pipe(in_type, out_type, input, output, filter_type, value)
+def tarx(output, input, input_args, value, filter_type):
+    out_type = detect_output(output, "Dir")
+    in_type = detect_input(input, "Tar")
+    do_pipe(in_type, out_type, input, output,
+            filter_type, value, input_args=input_args)
 
 
 @cli.command()
@@ -194,15 +189,15 @@ def tarx(output, input, value, filter_type):
 @click.option("--dry/--no-dry")
 @click.option("--skiptag/--no-skiptag", default=False)
 @inout_option
-def rsync(output, input, value, filter_type, dry, skiptag):
+def rsync(output, input, input_args, value, filter_type, dry, skiptag):
     log.info("input %s, output %s", input, output)
-    in_type = auto_detect(input, "Single")
+    in_type = detect_input(input, "Single")
     if dry:
         out_type = "List"
     else:
-        out_type = auto_detect(output, "Dir")
+        out_type = detect_output(output, "Dir")
     do_pipe(in_type, out_type, input, output,
-            filter_type, value, None, skiptag)
+            filter_type, value, None, skiptag, input_args=input_args)
 
 
 @cli.command()
@@ -213,7 +208,7 @@ def rsync(output, input, value, filter_type, dry, skiptag):
 @click.argument("input", type=click.Path())
 @click.argument("output", type=click.File('w'), default=sys.stdout)
 def var_names(input, output, value, filter_type, dry):
-    in_type = auto_detect(input, "Single")
+    in_type = detect_input(input, "Single")
     input_val = dict(input_items()).get(in_type)(input)
     flt = dict(filter_items()).get(filter_type)()
     assert hasattr(flt, 'var_names')
