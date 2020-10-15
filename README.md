@@ -4,6 +4,7 @@
 
 - python -m venv .
 - ./bin/pip install tarjinja
+- or .. docker pull ghcr.io/wtnb75/tarjinja
 
 ## Install head
 
