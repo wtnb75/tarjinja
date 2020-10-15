@@ -78,10 +78,10 @@ def value_option(func):
         if gitconfig:
             p = subprocess.run(["git", "config", "-l"],
                                stdout=subprocess.PIPE, encoding="UTF-8", stdin=subprocess.DEVNULL)
-            for l in p.stdout.split("\n"):
-                if "=" not in l:
+            for line in p.stdout.split("\n"):
+                if "=" not in line:
                     continue
-                k, v = l.strip().split("=", 1)
+                k, v = line.strip().split("=", 1)
                 v = v.strip()
                 if not k.startswith("user."):
                     continue
