@@ -1,8 +1,9 @@
-import unittest
 import tempfile
 import time
-import tarjinja
+import unittest
 from logging import getLogger
+
+import tarjinja
 
 log = getLogger(__name__)
 
@@ -30,7 +31,7 @@ class InOutTest(unittest.TestCase):
             self.assertEqual(data.get(fn), input.readfile(fn))
         self.assertEqual(set(data.keys()), checked)
 
-    def TestTarXZ(self):
+    def test_tar_xz(self):
         tf = tempfile.NamedTemporaryFile(suffix=".tar.xz")
         now = time.time()
         taro = tarjinja.TarOutput(tf.name)
@@ -38,7 +39,7 @@ class InOutTest(unittest.TestCase):
         tari = tarjinja.TarInput(tf.name)
         self.check(tari, self.data, now)
 
-    def TestTar(self):
+    def test_tar(self):
         tf = tempfile.NamedTemporaryFile(suffix=".tar")
         now = time.time()
         taro = tarjinja.TarOutput(tf.name)
@@ -46,7 +47,7 @@ class InOutTest(unittest.TestCase):
         tari = tarjinja.TarInput(tf.name)
         self.check(tari, self.data, now)
 
-    def TestZip(self):
+    def test_zip(self):
         tf = tempfile.NamedTemporaryFile(suffix=".zip")
         now = time.time()
         taro = tarjinja.ZipOutput(tf.name)
@@ -54,7 +55,7 @@ class InOutTest(unittest.TestCase):
         tari = tarjinja.ZipInput(tf.name)
         self.check(tari, self.data, now)
 
-    def TestDir(self):
+    def test_dir(self):
         tf = tempfile.TemporaryDirectory()
         now = time.time()
         taro = tarjinja.DirOutput(tf.name)
@@ -62,7 +63,7 @@ class InOutTest(unittest.TestCase):
         tari = tarjinja.DirInput(tf.name)
         self.check(tari, self.data, now)
 
-    def TestMem(self):
+    def test_mem(self):
         taro = tarjinja.MemOutput("dummy")
         self.output(taro, self.data, None)
         tari = tarjinja.MemInput("dummy")

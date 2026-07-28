@@ -1,8 +1,9 @@
-import fnmatch
 import copy
-import braceexpand
-from typing import Generator, Tuple
+import fnmatch
+from collections.abc import Generator
 from logging import getLogger
+
+import braceexpand
 
 log = getLogger(__name__)
 
@@ -11,7 +12,7 @@ class Input:
     def __init__(self, ifn: str, **kwargs):
         self.ifn = ifn
 
-    def walk(self) -> Generator[Tuple[str, int, float], None, None]:
+    def walk(self) -> Generator[tuple[str, int, float], None, None]:
         raise NotImplementedError("walk")
 
     def readfile(self, fn: str) -> str:
@@ -35,7 +36,7 @@ class Filter:
         while i < n:
             match = False
             for s, r in replace.items():
-                if strng[i:len(s) + i] == s:
+                if strng[i : len(s) + i] == s:
                     buffer.append(r)
                     i = i + len(s)
                     match = True
@@ -43,14 +44,14 @@ class Filter:
             if not match:
                 buffer.append(strng[i])
                 i = i + 1
-        return ''.join(buffer)
+        return "".join(buffer)
 
 
 class Output:
     def __init__(self, ofn: str, **kwargs):
         self.ofn = ofn
 
-    def writefile(self, fn: str, content: str, mode: int, ts: float = None):
+    def writefile(self, fn: str, content: str, mode: int, ts: float | None = None):
         raise NotImplementedError("writefile")
 
     def finish(self):
@@ -58,7 +59,9 @@ class Output:
 
 
 class Pipeline:
-    def __init__(self, inp: Input, filt: Filter, outp: Output, passpat: str = None):
+    def __init__(
+        self, inp: Input, filt: Filter, outp: Output, passpat: str | None = None
+    ):
         self.inp = inp
         self.filt = filt
         self.outp = outp

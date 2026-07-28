@@ -1,15 +1,16 @@
 # copy directory
 import os
 import time
-from typing import Generator, Tuple
-from .iface import Input, Output
+from collections.abc import Generator
 from logging import getLogger
+
+from .iface import Input, Output
 
 log = getLogger(__name__)
 
 
 class DirInput(Input):
-    def walk(self) -> Generator[Tuple[str, int, float], None, None]:
+    def walk(self) -> Generator[tuple[str, int, float], None, None]:
         for root, dirs, files in os.walk(self.ifn):
             relpath = os.path.relpath(root, self.ifn)
             if relpath == ".":
@@ -26,7 +27,7 @@ class DirInput(Input):
 
 
 class SingleInput(Input):
-    def walk(self) -> Generator[Tuple[str, int, float], None, None]:
+    def walk(self) -> Generator[tuple[str, int, float], None, None]:
         st = os.stat(self.ifn)
         yield os.path.basename(self.ifn), st.st_mode, st.st_mtime
 
@@ -41,7 +42,7 @@ class DirOutput(Output):
         self.ofn = os.path.abspath(self.ofn)
         log.debug("ofn is %s -> %s", ofn, self.ofn)
 
-    def writefile(self, fn: str, content: str, mode: int, ts: float = None):
+    def writefile(self, fn: str, content: str, mode: int, ts: float | None = None):
         fname = os.path.join(self.ofn, fn)
         if not os.path.abspath(fname).startswith(self.ofn):
             log.warning("%s is not in %s", fname, self.ofn)
@@ -56,8 +57,8 @@ class DirOutput(Output):
 
 
 class ListOutput(Output):
-    def writefile(self, fn: str, content: str, mode: int, ts: float = None):
+    def writefile(self, fn: str, content: str, mode: int, ts: float | None = None):
         tsstr = "YYYY-mm-dd HH:MM"
         if ts is not None:
             tsstr = time.strftime("%Y-%m-%d %H:%M", time.localtime(ts))
-        print("%o %d %s %s" % (mode, len(content), tsstr, fn))
+        print(f"{mode:o} {len(content)} {tsstr} {fn}")

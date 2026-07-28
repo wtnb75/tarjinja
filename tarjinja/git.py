@@ -1,20 +1,22 @@
-import os
-import time
-import tempfile
 import io
+import os
+import tempfile
+import time
+from collections.abc import Generator
 from logging import getLogger
-from typing import Generator, Tuple
-from .iface import Input
+
 import git
 
+from .iface import Input
 
 log = getLogger(__name__)
 
 
 class GitInput(Input):
-    def __init__(self, ifn: str, name: str, branch: str = "master", tmpdir: str = None):
-        log.debug("ifn=%s, name=%s, branch=%s, tmpdir=%s",
-                  ifn, name, branch, tmpdir)
+    def __init__(
+        self, ifn: str, name: str, branch: str = "master", tmpdir: str | None = None
+    ):
+        log.debug("ifn=%s, name=%s, branch=%s, tmpdir=%s", ifn, name, branch, tmpdir)
         super().__init__(ifn)
         if tmpdir is None:
             self.tmpd = tempfile.TemporaryDirectory()
@@ -26,12 +28,13 @@ class GitInput(Input):
             self.repo = git.repo.Repo(dirn)
             self.repo.remote().fetch(refspec=branch, depth=1)
         else:
-            self.repo = git.repo.Repo.clone_from(self.ifn, dirn, bare=True,
-                                                 branch=branch, depth=1)
+            self.repo = git.repo.Repo.clone_from(
+                self.ifn, dirn, bare=True, branch=branch, depth=1
+            )
         self.ts = time.time()
         self.files = {}
 
-    def walk(self) -> Generator[Tuple[str, int, float], None, None]:
+    def walk(self) -> Generator[tuple[str, int, float], None, None]:
         for x in self.repo.tree().traverse():
             if x.type != "blob":
                 continue
@@ -40,7 +43,9 @@ class GitInput(Input):
 
     def readfile(self, fn: str) -> str:
         try:
-            return io.TextIOWrapper(io.BytesIO(self.files.get(fn).data_stream.read())).read()
+            return io.TextIOWrapper(
+                io.BytesIO(self.files.get(fn).data_stream.read())
+            ).read()
         except UnicodeDecodeError as e:
-            log.warning("cannot decode", e)
+            log.warning("cannot decode: %s", e)
             return ""

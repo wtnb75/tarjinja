@@ -1,4 +1,6 @@
 from logging import getLogger
+from typing import ClassVar
+
 from .iface import Filter
 
 log = getLogger(__name__)
@@ -8,7 +10,7 @@ class AbstractReverseFilter(Filter):
     def placeholder(self, name: str) -> str:
         raise NotImplementedError("placeholder")
 
-    tag_escape = {}
+    tag_escape: ClassVar[dict[str, str]] = {}
 
     def render(self, s: str, vals: dict) -> str:
         valmap = {}
@@ -26,29 +28,30 @@ class AbstractReverseFilter(Filter):
 
 
 class ReverseJinjaFilter(AbstractReverseFilter):
-    tag_escape = dict([(x, "{%raw%}" + x + "{%endraw%}")
-                       for x in ["{{", "}}", "{%", "%}"]])
+    tag_escape: ClassVar[dict[str, str]] = {
+        x: "{%raw%}" + x + "{%endraw%}" for x in ["{{", "}}", "{%", "%}"]
+    }
 
     def placeholder(self, name: str) -> str:
         return "{{" + name + "}}"
 
 
 class ReverseTemplateFilter(AbstractReverseFilter):
-    tag_escape = {"$": "$$"}
+    tag_escape: ClassVar[dict[str, str]] = {"$": "$$"}
 
     def placeholder(self, name: str) -> str:
         return "${" + name + "}"
 
 
 class ReverseFormatFilter(AbstractReverseFilter):
-    tag_escape = {"{": "{{", "}": "}}"}
+    tag_escape: ClassVar[dict[str, str]] = {"{": "{{", "}": "}}"}
 
     def placeholder(self, name: str) -> str:
         return "{" + name + "}"
 
 
 class ReversePercentFilter(AbstractReverseFilter):
-    tag_escape = {"%": "%%"}
+    tag_escape: ClassVar[dict[str, str]] = {"%": "%%"}
 
     def placeholder(self, name: str) -> str:
         return "%(" + name + ")s"

@@ -1,7 +1,0 @@
-Jinja2
-Click
-braceexpand
-PyYAML
-mako
-requests
-GitPython

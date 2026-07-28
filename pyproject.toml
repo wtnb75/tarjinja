@@ -1,0 +1,85 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tarjinja"
+dynamic = ["version"]
+description = "archive/recursive copy with template"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Watanabe Takashi", email = "wtnb75@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "Jinja2",
+    "Click",
+    "braceexpand",
+    "PyYAML",
+    "mako",
+    "requests",
+    "GitPython",
+]
+
+[project.scripts]
+tarjinja = "tarjinja._cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/wtnb75/tarjinja"
+
+[tool.hatch.version]
+path = "tarjinja/version.py"
+pattern = "VERSION = ['\"](?P<version>[^'\"]+)['\"]"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tarjinja"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-github-actions-annotate-failures",
+    "ruff",
+    "pdoc",
+]
+
+[tool.ruff]
+# examples/pythoncli is a jinja2-templated example project (files like
+# "{{name}}/_cli.py" contain "{{ }}" template syntax, not valid Python) used
+# as sample input for tarjinja itself - it is not real source and can't be
+# parsed as Python.
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+ignore = [
+    # SIM115: tarjinja/tar.py's TarInput/TarOutput store the tarfile handle
+    # as an instance attribute (self.tf) read/written by walk()/readfile()/
+    # writefile()/finish() across separate method calls - it must outlive
+    # __init__, so it cannot be scoped to a single `with` block. Tests use
+    # the same NamedTemporaryFile-kept-open pattern to access tf.name across
+    # multiple statements in the test body.
+    "SIM115",
+    # DTZ001: tarjinja/zip.py builds a datetime from a zip entry's
+    # zinfo.date_time - the ZIP format itself has no timezone field (it's
+    # always local/naive per spec), so there is no tzinfo to pass.
+    "DTZ001",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# RUF012: unittest.TestCase class attributes here are read-only fixture data
+# (never mutated), not function default arguments, so they don't share the
+# B006 mutable-default-argument bug class.
+"tests/*" = ["RUF012"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
+addopts = "--cov-report=html:cover --cov-report=term --cov-branch --cov-reset --cov=tarjinja --doctest-modules --ignore=examples"
