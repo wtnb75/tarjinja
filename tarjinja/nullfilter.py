@@ -1,5 +1,6 @@
+from collections.abc import Generator
+
 from .iface import Filter
-from typing import Generator
 
 
 class NullFilter(Filter):

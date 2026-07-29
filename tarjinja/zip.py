@@ -1,8 +1,9 @@
 import datetime
 import time
 import zipfile
-from typing import Generator, Tuple
+from collections.abc import Generator
 from logging import getLogger
+
 from .iface import Input, Output
 
 log = getLogger(__name__)
@@ -15,7 +16,7 @@ class ZipInput(Input):
         self.encoding = "utf-8"
         self.ZIP_UNIX_SYSTEM = 3
 
-    def walk(self) -> Generator[Tuple[str, int, float], None, None]:
+    def walk(self) -> Generator[tuple[str, int, float], None, None]:
         for zinfo in self.zf.infolist():
             if zinfo.is_dir():
                 continue
@@ -36,14 +37,20 @@ class ZipOutput(Output):
         self.encoding = "utf-8"
         self.compress_type = zipfile.ZIP_DEFLATED
 
-    def writefile(self, fn: str, content: str, mode: int, ts: float = None):
+    def writefile(self, fn: str, content: str, mode: int, ts: float | None = None):
         zinfo = zipfile.ZipInfo(fn, time.localtime(ts))
         zinfo.compress_type = self.compress_type
         zinfo.external_attr = mode << 16
         if ts is not None:
             tm = time.localtime(ts)
-            zinfo.date_time = (tm.tm_year, tm.tm_mon, tm.tm_mday,
-                               tm.tm_hour, tm.tm_min, tm.tm_sec)
+            zinfo.date_time = (
+                tm.tm_year,
+                tm.tm_mon,
+                tm.tm_mday,
+                tm.tm_hour,
+                tm.tm_min,
+                tm.tm_sec,
+            )
         self.zf.writestr(zinfo, content)
 
     def finish(self):

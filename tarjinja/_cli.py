@@ -1,18 +1,20 @@
-import os
-import sys
 import functools
-import click
-import subprocess
-import yaml
-import tempfile
-import requests
 import json
+import os
 import string
-from .choice import input_items, output_items, detect_input, detect_output, filter_items
-from .multifilter import MultiFilter
+import subprocess
+import sys
+import tempfile
+from logging import DEBUG, INFO, basicConfig, getLogger
+
+import click
+import requests
+import yaml
+
+from .choice import detect_input, detect_output, filter_items, input_items, output_items
 from .iface import Pipeline
+from .multifilter import MultiFilter
 from .version import VERSION
-from logging import getLogger, basicConfig, INFO, DEBUG
 
 log = getLogger(__name__)
 
@@ -26,7 +28,7 @@ def cli(ctx):
 
 
 def set_verbose(flag):
-    fmt = '%(asctime)s %(levelname)s %(message)s'
+    fmt = "%(asctime)s %(levelname)s %(message)s"
     if flag:
         basicConfig(level=DEBUG, format=fmt)
     else:
@@ -38,8 +40,8 @@ _cli_option = [
 ]
 
 _value_option = [
-    click.option("--value-from", type=click.File('r')),
-    click.option("--value", default='{}', type=str),
+    click.option("--value-from", type=click.File("r")),
+    click.option("--value", default="{}", type=str),
     click.option("--gitconfig/--no-gitconfig"),
     click.option("--github-user/--no-github-user"),
 ]
@@ -56,6 +58,7 @@ def multi_options(decs):
         for dec in reversed(decs):
             f = dec(f)
         return f
+
     return deco
 
 
@@ -64,6 +67,7 @@ def cli_option(func):
     def wrap(verbose, *args, **kwargs):
         set_verbose(verbose)
         return func(*args, **kwargs)
+
     return multi_options(_cli_option)(wrap)
 
 
@@ -76,8 +80,13 @@ def value_option(func):
         if value:
             vals.update(json.loads(value))
         if gitconfig:
-            p = subprocess.run(["git", "config", "-l"],
-                               stdout=subprocess.PIPE, encoding="UTF-8", stdin=subprocess.DEVNULL)
+            p = subprocess.run(
+                ["git", "config", "-l"],
+                check=False,
+                stdout=subprocess.PIPE,
+                encoding="UTF-8",
+                stdin=subprocess.DEVNULL,
+            )
             for line in p.stdout.split("\n"):
                 if "=" not in line:
                     continue
@@ -91,13 +100,19 @@ def value_option(func):
                 if len(v) != 0:
                     vals[k] = v
         if github_user:
-            p = subprocess.run(["hub", "api", "user"], stdout=subprocess.PIPE,
-                               encoding="UTF-8", stdin=subprocess.DEVNULL)
+            p = subprocess.run(
+                ["hub", "api", "user"],
+                check=False,
+                stdout=subprocess.PIPE,
+                encoding="UTF-8",
+                stdin=subprocess.DEVNULL,
+            )
             data = json.loads(p.stdout)
             for k, v in data.items():
                 if isinstance(v, str) and v != "":
                     vals["github_" + k] = v
-        return func(value=vals, *args, **kwargs)
+        return func(*args, value=vals, **kwargs)
+
     return multi_options(_value_option)(wrap)
 
 
@@ -107,16 +122,42 @@ def inout_option(func):
         if "://" in input and ".git" not in input:
             tmpd = tempfile.TemporaryDirectory()
             tmpfn = os.path.join(tmpd.name, os.path.basename(input))
-            with open(tmpfn, 'wb') as ofp:
+            with open(tmpfn, "wb") as ofp:
                 ofp.write(requests.get(input).content)
             input = tmpfn
-        return func(input=input, output=output, input_args=json.loads(input_args), *args, **kwargs)
+        return func(
+            *args,
+            input=input,
+            output=output,
+            input_args=json.loads(input_args),
+            **kwargs,
+        )
+
     return multi_options(_inout_option)(wrap)
 
 
-def do_pipe(in_type, out_type, input, output, filter_type, vals, thru=None, notag=False, input_args={}):
-    log.debug("input: %s (%s), output: %s (%s), filter: %s, input_args: %s",
-              input, in_type, output, out_type, filter_type, input_args)
+def do_pipe(
+    in_type,
+    out_type,
+    input,
+    output,
+    filter_type,
+    vals,
+    thru=None,
+    notag=False,
+    input_args=None,
+):
+    if input_args is None:
+        input_args = {}
+    log.debug(
+        "input: %s (%s), output: %s (%s), filter: %s, input_args: %s",
+        input,
+        in_type,
+        output,
+        out_type,
+        filter_type,
+        input_args,
+    )
     if isinstance(in_type, str):
         input_val = dict(input_items()).get(in_type)(input, **input_args)
     else:
@@ -153,8 +194,7 @@ def do_pipe(in_type, out_type, input, output, filter_type, vals, thru=None, nota
 def copy(in_type, out_type, filter_type, input, output, value, thru, input_args):
     iarg = json.loads(input_args)
     log.debug("input_args: %s", iarg)
-    do_pipe(in_type, out_type, input, output, filter_type,
-            value, thru, False, iarg)
+    do_pipe(in_type, out_type, input, output, filter_type, value, thru, False, iarg)
 
 
 @cli.command()
@@ -165,8 +205,7 @@ def copy(in_type, out_type, filter_type, input, output, value, thru, input_args)
 def tarc(output, input, input_args, value, filter_type):
     out_type = detect_output(output, "Tar")
     in_type = detect_input(input, "Dir")
-    do_pipe(in_type, out_type, input, output,
-            filter_type, value, input_args=input_args)
+    do_pipe(in_type, out_type, input, output, filter_type, value, input_args=input_args)
 
 
 @cli.command()
@@ -178,8 +217,7 @@ def tarc(output, input, input_args, value, filter_type):
 def tarx(output, input, input_args, value, filter_type):
     out_type = detect_output(output, "Dir")
     in_type = detect_input(input, "Tar")
-    do_pipe(in_type, out_type, input, output,
-            filter_type, value, input_args=input_args)
+    do_pipe(in_type, out_type, input, output, filter_type, value, input_args=input_args)
 
 
 @cli.command()
@@ -196,8 +234,17 @@ def rsync(output, input, input_args, value, filter_type, dry, skiptag):
         out_type = "List"
     else:
         out_type = detect_output(output, "Dir")
-    do_pipe(in_type, out_type, input, output,
-            filter_type, value, None, skiptag, input_args=input_args)
+    do_pipe(
+        in_type,
+        out_type,
+        input,
+        output,
+        filter_type,
+        value,
+        None,
+        skiptag,
+        input_args=input_args,
+    )
 
 
 @cli.command()
@@ -206,12 +253,12 @@ def rsync(output, input, input_args, value, filter_type, dry, skiptag):
 @click.option("--filter-type", type=click.Choice(dict(filter_items())), default="Jinja")
 @click.option("--dry/--no-dry")
 @click.argument("input", type=click.Path())
-@click.argument("output", type=click.File('w'), default=sys.stdout)
+@click.argument("output", type=click.File("w"), default=sys.stdout)
 def var_names(input, output, value, filter_type, dry):
     in_type = detect_input(input, "Single")
     input_val = dict(input_items()).get(in_type)(input)
     flt = dict(filter_items()).get(filter_type)()
-    assert hasattr(flt, 'var_names')
+    assert hasattr(flt, "var_names")
     res = set()
     for fnpat, mode, ts in input_val.walk():
         res.update(flt.var_names(fnpat))

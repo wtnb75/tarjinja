@@ -1,10 +1,8 @@
-from typing import List
-from logging import getLogger
-import string
 import re
+import string
+from logging import getLogger
 
 from .iface import Filter
-
 
 log = getLogger(__name__)
 
@@ -15,10 +13,10 @@ class TemplateFilter(Filter):
     def render(self, s: str, vals: dict) -> str:
         return string.Template(s).substitute(**vals)
 
-    def var_names(self, s: str) -> List[str]:
+    def var_names(self, s: str) -> list[str]:
         res = set()
         for i in self.pattern.finditer(s):
-            v = i.group('braced')
+            v = i.group("braced")
             log.debug("found %s", v)
             if v is not None:
                 res.add(v)
@@ -27,16 +25,14 @@ class TemplateFilter(Filter):
 
 
 class FormatFilter(TemplateFilter):
-    pattern = re.compile(
-        '(\\{\\{)*\\{(?P<braced>([_a-zA-Z][_a-zA-Z0-9]*))\\}(\\}\\})*')
+    pattern = re.compile("(\\{\\{)*\\{(?P<braced>([_a-zA-Z][_a-zA-Z0-9]*))\\}(\\}\\})*")
 
     def render(self, s: str, vals: dict) -> str:
         return s.format(**vals)
 
 
 class PercentFilter(TemplateFilter):
-    pattern = re.compile(
-        '(\\%\\%)*\\%\\((?P<braced>([_a-zA-Z][_a-zA-Z0-9]*))\\)')
+    pattern = re.compile("(\\%\\%)*\\%\\((?P<braced>([_a-zA-Z][_a-zA-Z0-9]*))\\)")
 
     def render(self, s: str, vals: dict) -> str:
         return s % vals

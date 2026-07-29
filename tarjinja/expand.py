@@ -1,7 +1,7 @@
 import ast
-import re
 import itertools
-from typing import Generator
+import re
+from collections.abc import Generator
 
 
 def list_expand(s: str) -> Generator[str, None, None]:

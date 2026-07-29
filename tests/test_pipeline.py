@@ -1,8 +1,10 @@
 import os
-import unittest
-import time
 import tempfile
+import time
+import unittest
+
 import test.support
+
 import tarjinja
 
 
@@ -21,8 +23,6 @@ class PipeTest(unittest.TestCase):
         with test.support.captured_stdout() as outs:
             pl.render({"name": "world"})
         mode = os.stat(tf.name).st_mode
-        ts = time.strftime(
-            "%Y-%m-%d %H:%M", time.localtime(os.stat(tf.name).st_mtime))
-        expected = "%o %d %s %s\n" % (
-            mode, len(expstr), ts, os.path.basename(tf.name))
-        self.assertEquals(expected, outs.getvalue())
+        ts = time.strftime("%Y-%m-%d %H:%M", time.localtime(os.stat(tf.name).st_mtime))
+        expected = f"{mode:o} {len(expstr)} {ts} {os.path.basename(tf.name)}\n"
+        self.assertEqual(expected, outs.getvalue())

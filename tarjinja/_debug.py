@@ -1,5 +1,6 @@
-import sys
 import json
+import sys
+
 import click
 from jinja2 import Template
 
